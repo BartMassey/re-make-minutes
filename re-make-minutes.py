@@ -8,8 +8,56 @@ import sys
 from datetime import date, timedelta
 
 
-REPO_ID = "MDEwOlJlcG9zaXRvcnk2OTUyMDc2NQ=="
-CATEGORY_ID = "DIC_kwDOBCTNfc4CelXZ"  # General
+REPO_OWNER = "rust-embedded"
+REPO_NAME = "wg"
+CATEGORY_NAME = "General"
+
+
+def lookup_repo_and_category() -> tuple[str, str]:
+    """Return (repo_id, category_id) by querying the GitHub API."""
+    query = """
+    query($owner: String!, $name: String!) {
+      repository(owner: $owner, name: $name) {
+        id
+        discussionCategories(first: 25) {
+          nodes { id name }
+        }
+      }
+    }
+    """
+    result = subprocess.run(
+        [
+            "gh", "api", "graphql",
+            "-f", f"query={query}",
+            "-f", f"owner={REPO_OWNER}",
+            "-f", f"name={REPO_NAME}",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(f"Error looking up repo: {result.stderr}", file=sys.stderr)
+        sys.exit(1)
+
+    data = json.loads(result.stdout)
+    if "errors" in data:
+        print(f"GraphQL errors: {data['errors']}", file=sys.stderr)
+        sys.exit(1)
+
+    repo = data["data"]["repository"]
+    repo_id = repo["id"]
+
+    categories = repo["discussionCategories"]["nodes"]
+    matches = [c for c in categories if c["name"] == CATEGORY_NAME]
+    if not matches:
+        names = [c["name"] for c in categories]
+        print(
+            f"Category {CATEGORY_NAME!r} not found. Available: {names}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    return repo_id, matches[0]["id"]
 
 
 def next_tuesday(from_date: date) -> date:
@@ -40,6 +88,8 @@ def create_discussion(meeting_date: date, dry_run: bool) -> None:
         print(f"Body:\n{body}")
         return
 
+    repo_id, category_id = lookup_repo_and_category()
+
     mutation = """
     mutation($repoId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
       createDiscussion(input: {
@@ -60,8 +110,8 @@ def create_discussion(meeting_date: date, dry_run: bool) -> None:
         [
             "gh", "api", "graphql",
             "-f", f"query={mutation}",
-            "-f", f"repoId={REPO_ID}",
-            "-f", f"categoryId={CATEGORY_ID}",
+            "-f", f"repoId={repo_id}",
+            "-f", f"categoryId={category_id}",
             "-f", f"title={title}",
             "-f", f"body={body}",
         ],
