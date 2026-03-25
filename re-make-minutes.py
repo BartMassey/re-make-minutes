@@ -68,11 +68,14 @@ def next_tuesday(from_date: date) -> date:
 
 def make_body(meeting_date: date) -> str:
     date_str = meeting_date.strftime("%Y-%m-%d")
+    timesched_url = (
+        f"http://timesched.pocoo.org/?tz=de:berlin!&date={date_str}&range=1200,1260"
+    )
     return (
         "This is the agenda for the next meeting. "
         "Please add anything you'd like to discuss below!\r\n"
         "\r\n"
-        "*  Meetings: Tuesday 8pm Europe/Berlin time\r\n"
+        f"*  Meetings: Tuesday [8pm Europe/Berlin time]({timesched_url})\r\n"
         "*  [Join the Matrix chat](https://matrix.to/#/#rust-embedded:matrix.org)\r\n"
         f"*  [IRC/Matrix logs](https://libera.irclog.whitequark.org/rust-embedded/{date_str})"
     )
