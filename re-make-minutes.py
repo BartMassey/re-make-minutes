@@ -61,8 +61,9 @@ def lookup_repo_and_category() -> tuple[str, str]:
 
 
 def next_tuesday(from_date: date) -> date:
-    """Return the next Tuesday on or after from_date."""
-    days_ahead = (1 - from_date.weekday()) % 7  # Tuesday = weekday 1
+    """Return the next Tuesday strictly after from_date."""
+    # Monday is day 0 (ISO 8601 week numbering)
+    days_ahead = (7 - from_date.weekday()) % 7 + 1
     return from_date + timedelta(days=days_ahead)
 
 
