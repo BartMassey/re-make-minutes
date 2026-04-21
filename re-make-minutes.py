@@ -78,7 +78,9 @@ def make_body(meeting_date: date) -> str:
         "\r\n"
         f"*  Meetings: Tuesday [8pm Europe/Berlin time]({timesched_url})\r\n"
         "*  [Join the Matrix chat](https://matrix.to/#/#rust-embedded:matrix.org)\r\n"
-        f"*  [IRC/Matrix logs](https://libera.irclog.whitequark.org/rust-embedded/{date_str})"
+        f"*  [IRC/Matrix logs](https://libera.irclog.whitequark.org/rust-embedded/{date_str})\r\n"
+        "\r\n"
+        f"The [REWG Code of Conduct](https://github.com/rust-embedded/wg/blob/master/CODE_OF_CONDUCT.md) applies."
     )
 
 
